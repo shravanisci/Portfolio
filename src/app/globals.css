@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/*
+ * Tokens: Lagoon. Dark (the default) is a deep teal, never neutral black; light is a bright
+ * cyan-tinted page. Cyan is the accent (hovers, focus rings, second lines of big headings);
+ * sage is the secondary colour. ok/wip mark project status.
+ */
+:root {
+  --bg: #0f3038;
+  --surface: #163c45;
+  --surface-2: #1e4953;
+  --line: rgb(200 245 250 / 0.12);
+  --line-strong: rgb(200 245 250 / 0.24);
+  --fg: #ecfafc;
+  --muted: #aecdd2;
+  --ok: #a8d0b0;
+  --wip: #66e6f2;
+  --accent: #66e6f2;
+  --accent-2: #a8d0b0;
+  --on-accent: #072027;
+  --pill: #ecfafc;
+  --pill-ink: #0f3038;
+  --tag-line: rgb(200 245 250 / 0.35);
+  --grain-opacity: 0.08;
+  --work-grad: linear-gradient(180deg, var(--bg) 0%, var(--bg) 48%, #1f8a9a 78%, #a8d0b0 100%);
+  --work-cta-ink: #06191e;
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #e8f8fa;
+  --surface: #d9f1f4;
+  --surface-2: #c7e8ec;
+  --line: rgb(11 42 48 / 0.1);
+  --line-strong: rgb(11 42 48 / 0.22);
+  --fg: #0b2a30;
+  --muted: #43656b;
+  --ok: #426e4d;
+  --wip: #00737f;
+  --accent: #00737f;
+  --accent-2: #7fae8b;
+  --on-accent: #ffffff;
+  --pill: #0b2a30;
+  --pill-ink: #e8f8fa;
+  --tag-line: rgb(11 42 48 / 0.3);
+  --grain-opacity: 0.05;
+  --work-grad: linear-gradient(180deg, var(--bg) 0%, var(--bg) 48%, #8fdcea 78%, #bcd9b4 100%);
+  --work-cta-ink: #0b2a30;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-ok: var(--ok);
+  --color-wip: var(--wip);
+  --font-sans: var(--font-mona);
+  --font-mono: var(--font-geist-mono);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/*
+ * Wide screens scale the whole site, not just its margins. Nearly every size here is in rem, so
+ * growing the root font grows text, spacing and the 76rem column together, like zooming. The
+ * layout was tuned at 1280px wide (16px); from there it grows with the viewport, capped at 22px
+ * (reached around 1760px). Below 1280px nothing changes. On the root, rem means the browser
+ * default, so a larger default font a reader has chosen still wins. Breakpoints are in rem, but
+ * media queries resolve rem against the browser default, not this, so they don't move.
+ */
+html {
+  font-size: clamp(1rem, 1.25vw, 1.375rem);
+  scroll-behavior: smooth;
+  scrollbar-color: var(--line-strong) var(--bg);
+  caret-color: var(--fg);
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-mona), "Mona Sans", Arial, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+p,
+li,
+dd {
+  text-wrap: pretty;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 6px;
+}
+
+/* Quiet underline used for every text link on the page. */
+.link {
+  text-decoration-line: underline;
+  text-decoration-color: var(--line-strong);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  transition: text-decoration-color 0.2s ease, color 0.2s ease;
+}
+.link:hover {
+  text-decoration-color: currentColor;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/*
+ * Touch screens only: tappable things press in slightly while a finger is on them, so a tap
+ * feels received before anything else happens. `scale` is its own property, so it composes with
+ * any transform Motion or GSAP is driving. Mouse users see no change.
+ */
+@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: no-preference) {
+  .press {
+    transition-property: color, background-color, border-color, opacity, scale;
+    transition-duration: 160ms;
+    transition-timing-function: var(--ease-out-expo);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .press:active {
+    scale: 0.96;
+  }
+}
