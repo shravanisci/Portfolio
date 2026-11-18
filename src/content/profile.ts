@@ -49,9 +49,9 @@ export const heroClaims: Claim[] = [
   {
     id: "biomarkers",
     text: "which genes can diagnose breast cancer",
-    status: "progress",
+    status: "shipped",
     evidence:
-      "From 54,675 probes in the GSE42568 cohort down to nine genes, combining differential expression, pathway enrichment and STRING network hubs. The panel reaches ROC AUC 0.9898 under 5-fold cross-validation, though the genes were picked before the folds, so that figure is optimistic.",
+      "From 54,675 probes in the GSE42568 cohort down to nine genes (eight present on the validation array), combining differential expression, pathway enrichment and STRING network hubs. ROC AUC 0.9898 under 5-fold CV in discovery, and 0.9438 (95% CI 0.894–0.984) when the frozen model is scored on an independent cohort, GSE15852, it never saw during selection.",
     source: { label: "shravanisci/GSE42568-Breast-Cancer-Transcriptomics_Analysis", href: "https://github.com/shravanisci/GSE42568-Breast-Cancer-Transcriptomics_Analysis" },
     project: "breast-cancer-biomarkers",
   },
@@ -131,6 +131,110 @@ export type Project = {
 
 export const flagships: Project[] = [
   {
+    slug: "breast-cancer-biomarkers",
+    name: "Identification of potential biomarkers in breast cancer",
+    short: "Breast cancer biomarkers",
+    field: "Transcriptomics & ML",
+    year: "2026",
+    tagline: "Narrowing 54,675 microarray probes to an eight-gene panel that holds up in a second, independent cohort.",
+    context: "Capstone, BioTechTrek cancer transcriptomics internship · 2026",
+    status: "shipped",
+    problem:
+      "Which genes are most strongly and reliably dysregulated in breast tumours compared with normal breast tissue, and can a small panel of them tell the two apart accurately? A genome-wide array measures tens of thousands of probes at once, and most of what changes is noise or a side effect of something else. And a panel that only works on the cohort it was chosen from isn't a biomarker, it's an overfit.",
+    approach:
+      "An end-to-end pipeline in one notebook, Python with R/Bioconductor through rpy2. GEOparse pulls GSE42568 from GEO: 121 samples (104 tumour, 17 normal) on an Affymetrix U133 Plus 2.0 array. After QC by boxplot, PCA and Ward clustering, limma fits a Tumor − Normal contrast with empirical Bayes moderation and Benjamini-Hochberg correction at FDR < 0.05 and |log2FC| > 1. Probes map to gene symbols with mygene, then Enrichr runs over-representation against GO-BP and KEGG while GSEApy runs preranked GSEA (1,000 permutations) against KEGG 2021 and MSigDB Hallmark. The top 100 up- and down-regulated genes go to the STRING API, and NetworkX ranks hub genes by degree centrality. Candidates have to clear all three filters at once: a top-10 network hub, strong differential expression, and membership in an enriched pathway. A Random Forest then tests the panel under stratified 5-fold cross-validation, with scaling fitted inside each fold. For independent validation, GSE15852 — a different platform (GPL96 vs the discovery cohort's GPL570), 43 patients with matched tumour/normal pairs — is pulled fresh from GEO and reprocessed end to end: its own limma fit, its own GPL96 annotation. The eight of nine panel genes present on GPL96 (AQP7 isn't on that array) are scored with a logistic regression frozen on the full discovery set, never refit on validation data, and the classification threshold is fixed from the discovery ROC (Youden's J) before validation labels are touched.",
+    outcome:
+      "6,471 probes were differentially expressed: 3,386 up and 3,085 down. The direction fits the tissue, with epithelial genes up (EPCAM, DSP, KRT18) and adipocyte genes down (LEP, FABP4, PLIN1). Enrichment splits the same way: proliferation up (E2F targets NES +2.37, G2-M checkpoint +2.24) and metabolism down (adipogenesis NES −2.51, fatty acid metabolism −2.17, PPAR signalling −2.18). The nine-gene panel (EPCAM, CDH1, TOP2A, EZH2 up; PCK1, GPD1, AQP7, ACADL, APOB down) reached ROC AUC 0.9898 with 93.4% accuracy and perfect specificity under 5-fold CV, and EZH2 was the most informative feature — but the genes were chosen using all 121 samples before cross-validation, so that AUC was optimistic, and normal breast being mostly fat meant the down-regulated metabolic genes could partly reflect adipocyte content rather than tumour biology. On GSE15852, a cohort the genes were never near during selection, the frozen eight-gene logistic model scored AUC 0.9438 (95% CI 0.894–0.984, patient-pair bootstrap), with sensitivity 100% and specificity 69.8% at the discovery-derived threshold (accuracy 84.9%, F1 0.869). Seven of the eight genes replicated their paired tumour-vs-normal direction after FDR correction; only APOB didn't (p = 0.294), consistent with it being the weakest feature in the original panel. EPCAM alone almost matches the full model on its own (AUC 0.913 vs 0.944, difference not significant by paired DeLong, p = 0.201) — the combination adds robustness more than raw discriminative power. The honest read: this is a real, reproducible transcriptional signal that crosses platforms and cohorts, not a nine-gene miracle panel. Prospective or clinical-grade validation is the step after this.",
+    pipeline: [
+      { name: "Data", detail: "GSE42568 via GEOparse: 121 samples, 104 tumour and 17 normal, on 54,675 probes." },
+      { name: "QC", detail: "Per-sample boxplots, PCA on z-scored expression, and Ward hierarchical clustering." },
+      { name: "DEGs", detail: "limma through rpy2: lmFit, contrasts.fit, eBayes, FDR < 0.05 and |log2FC| > 1." },
+      { name: "Enrich", detail: "Enrichr over-representation on GO-BP and KEGG, plus preranked GSEA on KEGG and Hallmark." },
+      { name: "Network", detail: "STRING interactions for the top 200 DEGs, with hubs ranked by degree centrality in NetworkX." },
+      { name: "Shortlist", detail: "Hub gene and strong differential expression and enriched pathway: nine genes." },
+      { name: "Discovery CV", detail: "Random Forest under stratified 5-fold cross-validation, scored by pooled out-of-fold ROC." },
+      { name: "Independent validation", detail: "GSE15852 (GPL96, 43 matched tumour/normal pairs) reprocessed end to end; frozen discovery model, no refitting." },
+    ],
+    facts: [
+      { label: "differentially expressed probes", value: "6,471" },
+      { label: "discovery ROC AUC", value: "0.9898" },
+      { label: "validation ROC AUC", value: "0.9438" },
+      { label: "validation sensitivity", value: "1.00" },
+    ],
+    tokens: [
+      { label: "Up in tumour", items: ["EPCAM", "CDH1", "TOP2A", "EZH2"] },
+      { label: "Down in tumour", items: ["PCK1", "GPD1", "AQP7", "ACADL", "APOB"] },
+    ],
+    progress: [
+      { step: "Differential expression, enrichment and PPI network", state: "done" },
+      { step: "Nine-gene panel, ROC AUC 0.9898 under 5-fold CV", state: "done" },
+      { step: "Independent validation on GSE15852: AUC 0.9438, 95% CI 0.894–0.984", state: "done" },
+      { step: "Prospective or clinical-grade validation", state: "next" },
+    ],
+    figures: [
+      {
+        src: "/figures/breast/04_volcano_plot.png",
+        alt: "Volcano plot of log2 fold change against significance for every probe, with up- and down-regulated probes highlighted.",
+        label: "Volcano",
+        caption: "Volcano plot: 6,471 probes pass FDR < 0.05 and |log2FC| > 1, split 3,386 up and 3,085 down.",
+        width: 987,
+        height: 790,
+      },
+      {
+        src: "/figures/breast/10_roc_curve.png",
+        alt: "ROC curve for the nine-gene Random Forest classifier, rising almost immediately to a true positive rate near 1, with AUC 0.9898.",
+        label: "ROC",
+        caption: "Pooled out-of-fold ROC for the nine-gene panel under stratified 5-fold cross-validation.",
+        width: 702,
+        height: 624,
+      },
+      {
+        src: "/figures/breast/12_heatmap_candidate_biomarkers.png",
+        alt: "Clustered heatmap of the nine candidate biomarkers across all samples, with tumour and normal samples forming separate blocks.",
+        label: "Panel heatmap",
+        caption: "The nine candidates across all 121 samples: tumour and normal separate into two blocks.",
+        width: 1264,
+        height: 1025,
+      },
+      {
+        src: "/figures/breast/11_feature_importance.png",
+        alt: "Bar chart of mean Random Forest feature importance, with EZH2 highest, then PCK1 and GPD1.",
+        label: "Feature importance",
+        caption: "Mean Random Forest importance over the five folds: EZH2 carries the most signal.",
+        width: 1189,
+        height: 690,
+      },
+      {
+        src: "/figures/breast/08_ppi_upregulated_lcc.png",
+        alt: "Protein-protein interaction network of the up-regulated genes, largest connected component, with hub genes at the centre.",
+        label: "PPI network",
+        caption: "STRING interactions among the up-regulated genes; hubs are ranked by degree centrality.",
+        width: 1189,
+        height: 989,
+      },
+      {
+        src: "/figures/breast/13_validation_roc_curve.png",
+        alt: "ROC curve for the frozen eight-gene logistic regression model scored on the independent GSE15852 cohort, AUC 0.9438 with 95% confidence interval 0.8940 to 0.9838.",
+        label: "Validation ROC",
+        caption: "The discovery-trained eight-gene model scored on GSE15852, a cohort it never saw during selection: AUC 0.9438.",
+        width: 2364,
+        height: 2064,
+      },
+      {
+        src: "/figures/breast/14_validation_individual_gene_roc.png",
+        alt: "ROC curves for each of the eight panel genes individually in the GSE15852 validation cohort, with EPCAM highest at AUC 0.913 and APOB lowest at AUC 0.582.",
+        label: "Per-gene validation ROC",
+        caption: "Per-gene validation AUCs: EPCAM carries most of the signal (0.913); APOB is the weak link (0.582).",
+        width: 2670,
+        height: 2066,
+      },
+    ],
+    stack: ["Transcriptomics", "Microarray analysis", "Differential expression", "ORA", "GSEA", "PPI networks", "Random Forest", "Logistic regression", "Cross-validation", "Independent cohort validation", "ROC analysis", "Bootstrap CIs", "Python", "rpy2", "R", "Bioconductor", "limma", "GSEApy", "NetworkX", "STRING"],
+    links: [
+      { label: "Discovery notebook and figures", href: "https://github.com/shravanisci/GSE42568-Breast-Cancer-Transcriptomics_Analysis" },
+    ],
+  },
+  {
     slug: "crc-liver-metastasis",
     name: "Transcriptomic reprogramming in colorectal cancer liver metastasis",
     short: "Colorectal cancer liver metastasis",
@@ -194,91 +298,6 @@ export const flagships: Project[] = [
     ],
     stack: ["RNA-seq analysis", "Differential expression", "PCA", "ORA", "GSEA", "R", "Bioconductor", "limma", "Python", "pandas", "Jupyter Notebook"],
     links: [{ label: "Notebook and figures", href: "https://github.com/shravanisci/Colon-Cancer-Metastasis-Analysis" }],
-  },
-  {
-    slug: "breast-cancer-biomarkers",
-    name: "Identification of potential biomarkers in breast cancer",
-    short: "Breast cancer biomarkers",
-    field: "Transcriptomics & ML",
-    year: "2026",
-    tagline: "Narrowing 54,675 microarray probes down to nine genes that tell breast tumour from normal tissue.",
-    context: "Capstone, BioTechTrek cancer transcriptomics internship · 2026, ongoing",
-    status: "progress",
-    problem:
-      "Which genes are most strongly and reliably dysregulated in breast tumours compared with normal breast tissue, and can a small panel of them tell the two apart accurately? A genome-wide array measures tens of thousands of probes at once, and most of what changes is noise or a side effect of something else.",
-    approach:
-      "An end-to-end pipeline in one notebook, Python with R/Bioconductor through rpy2. GEOparse pulls GSE42568 from GEO: 121 samples (104 tumour, 17 normal) on an Affymetrix U133 Plus 2.0 array. After QC by boxplot, PCA and Ward clustering, limma fits a Tumor − Normal contrast with empirical Bayes moderation and Benjamini-Hochberg correction at FDR < 0.05 and |log2FC| > 1. Probes map to gene symbols with mygene, then Enrichr runs over-representation against GO-BP and KEGG while GSEApy runs preranked GSEA (1,000 permutations) against KEGG 2021 and MSigDB Hallmark. The top 100 up- and down-regulated genes go to the STRING API, and NetworkX ranks hub genes by degree centrality. Candidates have to clear all three filters at once: a top-10 network hub, strong differential expression, and membership in an enriched pathway. A Random Forest then tests the panel under stratified 5-fold cross-validation, with scaling fitted inside each fold.",
-    outcome:
-      "6,471 probes were differentially expressed: 3,386 up and 3,085 down. The direction fits the tissue, with epithelial genes up (EPCAM, DSP, KRT18) and adipocyte genes down (LEP, FABP4, PLIN1). Enrichment splits the same way: proliferation up (E2F targets NES +2.37, G2-M checkpoint +2.24) and metabolism down (adipogenesis NES −2.51, fatty acid metabolism −2.17, PPAR signalling −2.18). The nine-gene panel (EPCAM, CDH1, TOP2A, EZH2 up; PCK1, GPD1, AQP7, ACADL, APOB down) reached ROC AUC 0.9898 with 93.4% accuracy and perfect specificity, and EZH2 was the most informative feature. Two caveats matter: the genes were chosen using all 121 samples before cross-validation, so that AUC is optimistic, and because normal breast is mostly fat, the down-regulated metabolic genes may partly reflect adipocyte content rather than tumour biology. Validating on an independent cohort such as TCGA-BRCA, with feature selection nested inside the folds, is the next step.",
-    pipeline: [
-      { name: "Data", detail: "GSE42568 via GEOparse: 121 samples, 104 tumour and 17 normal, on 54,675 probes." },
-      { name: "QC", detail: "Per-sample boxplots, PCA on z-scored expression, and Ward hierarchical clustering." },
-      { name: "DEGs", detail: "limma through rpy2: lmFit, contrasts.fit, eBayes, FDR < 0.05 and |log2FC| > 1." },
-      { name: "Enrich", detail: "Enrichr over-representation on GO-BP and KEGG, plus preranked GSEA on KEGG and Hallmark." },
-      { name: "Network", detail: "STRING interactions for the top 200 DEGs, with hubs ranked by degree centrality in NetworkX." },
-      { name: "Shortlist", detail: "Hub gene and strong differential expression and enriched pathway: nine genes." },
-      { name: "Validate", detail: "Random Forest under stratified 5-fold cross-validation, scored by pooled out-of-fold ROC." },
-    ],
-    facts: [
-      { label: "differentially expressed probes", value: "6,471" },
-      { label: "gene panel", value: "9" },
-      { label: "ROC AUC", value: "0.9898" },
-      { label: "specificity", value: "1.00" },
-    ],
-    tokens: [
-      { label: "Up in tumour", items: ["EPCAM", "CDH1", "TOP2A", "EZH2"] },
-      { label: "Down in tumour", items: ["PCK1", "GPD1", "AQP7", "ACADL", "APOB"] },
-    ],
-    progress: [
-      { step: "Differential expression, enrichment and PPI network", state: "done" },
-      { step: "Nine-gene panel, ROC AUC 0.9898 under 5-fold CV", state: "done" },
-      { step: "Nested cross-validation to remove selection bias", state: "next" },
-      { step: "Validation in an independent cohort (TCGA-BRCA, METABRIC)", state: "next" },
-    ],
-    figures: [
-      {
-        src: "/figures/breast/04_volcano_plot.png",
-        alt: "Volcano plot of log2 fold change against significance for every probe, with up- and down-regulated probes highlighted.",
-        label: "Volcano",
-        caption: "Volcano plot: 6,471 probes pass FDR < 0.05 and |log2FC| > 1, split 3,386 up and 3,085 down.",
-        width: 987,
-        height: 790,
-      },
-      {
-        src: "/figures/breast/10_roc_curve.png",
-        alt: "ROC curve for the nine-gene Random Forest classifier, rising almost immediately to a true positive rate near 1, with AUC 0.9898.",
-        label: "ROC",
-        caption: "Pooled out-of-fold ROC for the nine-gene panel under stratified 5-fold cross-validation.",
-        width: 702,
-        height: 624,
-      },
-      {
-        src: "/figures/breast/12_heatmap_candidate_biomarkers.png",
-        alt: "Clustered heatmap of the nine candidate biomarkers across all samples, with tumour and normal samples forming separate blocks.",
-        label: "Panel heatmap",
-        caption: "The nine candidates across all 121 samples: tumour and normal separate into two blocks.",
-        width: 1264,
-        height: 1025,
-      },
-      {
-        src: "/figures/breast/11_feature_importance.png",
-        alt: "Bar chart of mean Random Forest feature importance, with EZH2 highest, then PCK1 and GPD1.",
-        label: "Feature importance",
-        caption: "Mean Random Forest importance over the five folds: EZH2 carries the most signal.",
-        width: 1189,
-        height: 690,
-      },
-      {
-        src: "/figures/breast/08_ppi_upregulated_lcc.png",
-        alt: "Protein-protein interaction network of the up-regulated genes, largest connected component, with hub genes at the centre.",
-        label: "PPI network",
-        caption: "STRING interactions among the up-regulated genes; hubs are ranked by degree centrality.",
-        width: 1189,
-        height: 989,
-      },
-    ],
-    stack: ["Transcriptomics", "Microarray analysis", "Differential expression", "ORA", "GSEA", "PPI networks", "Random Forest", "Cross-validation", "ROC analysis", "Python", "rpy2", "R", "Bioconductor", "limma", "GSEApy", "NetworkX", "STRING"],
-    links: [{ label: "Notebook and figures", href: "https://github.com/shravanisci/GSE42568-Breast-Cancer-Transcriptomics_Analysis" }],
   },
   {
     slug: "egfr-nsclc",
@@ -479,7 +498,7 @@ export const honors: { year: string; title: string; org: string }[] = [
   { year: "2026", title: "Selected Fellow, Summer Mini Fellowship on Molecular Imaging", org: "Stanford University School of Medicine" },
   { year: "2026", title: "Certificate of Appreciation for selection to the Stanford fellowship", org: "School of Sciences, JAIN (Deemed-to-be University)" },
   { year: "2025", title: "1st Prize, Research Poster Competition", org: "INAC: Industrial & Academic Confab 2025, JAIN (Deemed-to-be University) · for “Waste not; want not”" },
-  { year: "2024", title: "Winner, Poetry Competition", org: "JAIN (Deemed-to-be University)" },
+  { year: "2024", title: "Third Prize, Poetry Competition", org: "JAIN (Deemed-to-be University)" },
 ];
 
 export const education: { years: string; degree: string; school: string; notes: string[] }[] = [
