@@ -1727,7 +1727,15 @@ html[data-js] .statement:not(.is-in) .ln > span {
   .approach {
     min-height: 820px;
   }
-  /* Running text instead of fixed line groups: no ragged breaks. Reveal becomes a fade. */
+}
+/*
+ * The statement's font-size scales with its container (9.2cqw) up to a 136px cap, reached around a
+ * 1573px-wide viewport. Below that cap, the hand-set line breaks (tuned for the capped width) are
+ * wider than their line box at every container width in between, so the fixed nowrap lines clip
+ * their last word (e.g. "genomics"). Below 1600px, run the text instead of fixed line groups: no
+ * ragged breaks, nothing clipped. Reveal becomes a fade.
+ */
+@media (max-width: 1600px) {
   .statement .ln,
   .statement .ln > span {
     display: inline;
@@ -2155,8 +2163,8 @@ html[data-js] .statement:not(.is-in) .ln > span {
   .roll:hover {
     color: var(--accent);
   }
-  .pill,
-  .pill:hover,
+  .pill:not(.skip),
+  .pill:not(.skip):hover,
   .disclose:hover {
     transform: none;
   }
@@ -2166,6 +2174,13 @@ html[data-js] .statement:not(.is-in) .ln > span {
   }
   .wr-card,
   .wr-card:hover {
+    transform: none;
+  }
+  /* The skip link must stay off-screen until focused, even with .pill's transform reset above. */
+  .skip {
+    transform: translateY(-200%);
+  }
+  .skip:focus-visible {
     transform: none;
   }
 }

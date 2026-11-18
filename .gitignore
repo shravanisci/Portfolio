@@ -42,3 +42,4 @@ next-env.d.ts
 
 # impeccable design-tool artifacts (local only)
 .impeccable/
+.shots-tmp/
