@@ -2552,6 +2552,13 @@ html[data-js] .scalebar:not(.is-in) .sb-label {
 .tl.is-drawing::after {
   transform: scaleY(var(--p, 0));
 }
+@media (max-width: 700px) {
+  /* Below 700px the dot is the grid's first column (no date column before it), so the shared
+     left-offset formula's "+24px" gap no longer applies; match .tl::before's hardcoded 9px. */
+  .tl::after {
+    left: 9px;
+  }
+}
 .tl.is-drawing .tl-dot:not(.is-fellow) {
   transition: background-color 0.4s, border-color 0.4s, box-shadow 0.4s;
 }
