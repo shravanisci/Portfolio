@@ -496,6 +496,11 @@ export const presentations: Presentation[] = [
 
 export const honors: { year: string; title: string; org: string }[] = [
   { year: "2026", title: "Selected Fellow, Summer Mini Fellowship on Molecular Imaging", org: "Stanford University School of Medicine" },
+  {
+    year: "2026",
+    title: "Lab Champion, First place in the PDPL Lab Challenge Laptop Showdown",
+    org: "Protein Design Pvt Ltd · at the Academic Recruiter Conclave (ARC-2026), JAIN (Deemed-to-be University)",
+  },
   { year: "2026", title: "Certificate of Appreciation for selection to the Stanford fellowship", org: "School of Sciences, JAIN (Deemed-to-be University)" },
   { year: "2025", title: "1st Prize, Research Poster Competition", org: "INAC: Industrial & Academic Confab 2025, JAIN (Deemed-to-be University) · for “Waste not; want not”" },
   { year: "2024", title: "Third Prize, Poetry Competition", org: "JAIN (Deemed-to-be University)" },
