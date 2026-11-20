@@ -6,6 +6,12 @@
 
 /* ---------- Shared ---------- */
 
+/* Side gutter: 3% of the width on desktop, but never under 20px, so phone content doesn't hug
+   (or, on rounded/curved screens, disappear under) the screen edge. 3% passes 20px at ~667px. */
+:root {
+  --gutter: max(20px, 3%);
+}
+
 .disp {
   font-family: var(--font-mona), "Mona Sans", Arial, sans-serif;
   font-variation-settings: "wdth" 87.5;
@@ -143,8 +149,8 @@ html[data-js] .rows[data-reveal]:not(.is-in) > * {
   position: absolute;
   z-index: 40;
   top: 28px;
-  left: 3%;
-  right: 3%;
+  left: var(--gutter);
+  right: var(--gutter);
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -359,8 +365,8 @@ html[data-js] .rows[data-reveal]:not(.is-in) > * {
   position: absolute;
   z-index: 2;
   top: 147px;
-  left: 3%;
-  right: 3%;
+  left: var(--gutter);
+  right: var(--gutter);
   container-type: inline-size;
 }
 .hero-h1 {
@@ -459,7 +465,7 @@ html[data-js] .rows[data-reveal]:not(.is-in) > * {
 .hero-notes {
   position: absolute;
   z-index: 2;
-  left: 3%;
+  left: var(--gutter);
   bottom: 40px;
   width: min(540px, 60%);
   margin: 0;
@@ -475,14 +481,14 @@ html[data-js] .rows[data-reveal]:not(.is-in) > * {
 .hero-cta {
   position: absolute;
   z-index: 2;
-  right: 3%;
+  right: var(--gutter);
   bottom: 34px;
 }
 .hero-vlabel {
   position: absolute;
   z-index: 2;
   top: 52%;
-  right: calc(3% - 14px);
+  right: calc(var(--gutter) - 14px);
   writing-mode: vertical-rl;
   font-family: "PP Neue Montreal", var(--font-geist), Arial, sans-serif;
   font-size: 10px;
@@ -558,7 +564,7 @@ html[data-js] .site:not(.is-ready) .topnav {
 
 .approach {
   min-height: 900px;
-  padding: 40px 3% 64px;
+  padding: 40px var(--gutter) 64px;
   border-top: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -621,7 +627,7 @@ html[data-js] .statement:not(.is-in) .ln > span {
 .featured {
   position: relative;
   min-height: 960px;
-  padding: 38px 3% 80px;
+  padding: 38px var(--gutter) 80px;
   border-top: 1px solid var(--line);
   container-type: inline-size;
   overflow: hidden;
@@ -757,7 +763,7 @@ html[data-js] .statement:not(.is-in) .ln > span {
 .research {
   position: relative;
   min-height: 760px;
-  padding: 40px 4% 64px;
+  padding: 40px max(20px, 4%) 64px;
   background: var(--work-grad);
   container-type: inline-size;
 }
@@ -944,7 +950,7 @@ html[data-js] .statement:not(.is-in) .ln > span {
 
 .caps {
   min-height: 680px;
-  padding: 60px 3% 50px;
+  padding: 60px var(--gutter) 50px;
   border-top: 1px solid var(--line);
   container-type: inline-size;
 }
@@ -1487,7 +1493,7 @@ html[data-js] .statement:not(.is-in) .ln > span {
 /* ---------- Contact ---------- */
 
 .contact {
-  padding: 110px 3% 36px;
+  padding: 110px var(--gutter) 36px;
   border-top: 1px solid var(--line);
   container-type: inline-size;
 }
@@ -1601,7 +1607,7 @@ html[data-js] .statement:not(.is-in) .ln > span {
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
-  padding: 20px 3%;
+  padding: 20px var(--gutter);
   border-bottom: 1px solid var(--line);
 }
 .legal-home,
@@ -1630,7 +1636,7 @@ html[data-js] .statement:not(.is-in) .ln > span {
   color: var(--accent);
 }
 .legal-main {
-  padding: 72px 3% 0;
+  padding: 72px var(--gutter) 0;
   container-type: inline-size;
 }
 .legal-title {
@@ -1850,10 +1856,12 @@ html[data-js] .statement:not(.is-in) .ln > span {
 @media (max-width: 700px) {
   .hero-h1 {
     font-size: 15cqw;
-    padding-right: 22px;
+    /* Room for the absolutely-positioned "[BSc]" (~31px at 12px + 4px gap); .hero clips overflow. */
+    padding-right: 38px;
   }
   .hero-h1 .sup {
     font-size: 12px;
+    margin-left: 4px;
   }
   .hero-title {
     top: 150px;
@@ -1940,11 +1948,11 @@ html[data-js] .statement:not(.is-in) .ln > span {
   .hero-notes {
     bottom: 105px;
     width: auto;
-    right: 3%;
+    right: var(--gutter);
   }
   .hero-cta {
     right: auto;
-    left: 3%;
+    left: var(--gutter);
     bottom: 28px;
   }
   .scroll-link {
@@ -2234,7 +2242,7 @@ html[data-js] .statement:not(.is-in) .ln > span {
 /* ---------- At a glance: big numbers ---------- */
 
 .stats {
-  padding: 56px 3% 72px;
+  padding: 56px var(--gutter) 72px;
   container-type: inline-size;
 }
 .stats-kicker {
@@ -2361,7 +2369,7 @@ html[data-js] .statement:not(.is-in) .ln > span {
   justify-content: space-between;
   gap: 24px;
   flex-wrap: wrap;
-  padding: 0 3%;
+  padding: 0 var(--gutter);
 }
 .fs-head p {
   margin: 0;
@@ -2617,7 +2625,7 @@ html[data-js] .scalebar:not(.is-in) .sb-label {
 }
 @media (max-width: 700px) {
   .stats {
-    padding: 44px 16px 48px;
+    padding: 44px var(--gutter) 48px;
   }
   .stats-row {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2706,7 +2714,7 @@ a.fs-plate {
 /* ---------- Study pages (/research/[slug]) ---------- */
 
 .cp-main {
-  padding: 64px 3% 0;
+  padding: 64px var(--gutter) 0;
   container-type: inline-size;
 }
 .cp-head {
@@ -2878,8 +2886,8 @@ a.fs-plate {
   color: var(--muted);
 }
 .cp-facts {
-  margin: 72px -3.1% 0;
-  padding: 40px 3% 48px;
+  margin: 72px calc(-1 * max(20px, 3.1%)) 0;
+  padding: 40px var(--gutter) 48px;
 }
 .cp-facts dl {
   display: flex;
@@ -2978,7 +2986,7 @@ a.fs-plate {
 .cv {
   max-width: 880px;
   margin: 0 auto;
-  padding: 64px 3% 0;
+  padding: 64px var(--gutter) 0;
 }
 .cv-top {
   padding-bottom: 28px;
@@ -3145,17 +3153,17 @@ a.fs-plate {
 }
 @media (max-width: 700px) {
   .cp-main {
-    padding: 44px 16px 0;
+    padding: 44px var(--gutter) 0;
   }
   .cp-meta {
     grid-template-columns: minmax(0, 1fr);
   }
   .cp-facts {
-    margin-inline: -16px;
-    padding-inline: 16px;
+    margin-inline: calc(-1 * var(--gutter));
+    padding-inline: var(--gutter);
   }
   .cv {
-    padding: 44px 16px 0;
+    padding: 44px var(--gutter) 0;
   }
 }
 
@@ -3226,7 +3234,7 @@ a.fs-plate {
   align-items: center;
   gap: 48px;
   min-height: calc(100svh - 180px);
-  padding: 48px 3% 0;
+  padding: 48px var(--gutter) 0;
   container-type: inline-size;
 }
 .nf-field {
@@ -3307,7 +3315,7 @@ a.fs-plate {
 }
 @media (max-width: 700px) {
   .nf {
-    padding: 32px 16px 0;
+    padding: 32px var(--gutter) 0;
   }
 }
 
